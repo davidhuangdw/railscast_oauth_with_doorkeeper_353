@@ -1,0 +1,13 @@
+.page-header
+  %h1 Sessions#new
+
+= form_tag sessions_path do
+  .form-group
+    = label_tag :name
+    = text_field_tag :name, params[:name], class:'form-control'
+  .form-group
+    = label_tag :password
+    = password_field_tag :password, params[:password], class:'form-control'
+
+  .form-group
+    = submit_tag 'Log In', class:'btn btn-primary'
