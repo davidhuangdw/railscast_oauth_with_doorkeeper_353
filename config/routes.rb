@@ -1,9 +1,16 @@
 Rails.application.routes.draw do
+  use_doorkeeper
   resources :sessions
 
   resources :tasks
 
   resources :users
+
+  namespace :api, defaults:{format: 'json'} do
+    scope module: :v1 do
+      resources :tasks
+    end
+  end
 
   root 'tasks#index'
 

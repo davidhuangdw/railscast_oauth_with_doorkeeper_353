@@ -66,6 +66,8 @@ GEM
     debug_inspector (0.0.2)
     debugger-linecache (1.2.0)
     diff-lcs (1.2.5)
+    doorkeeper (1.4.0)
+      railties (>= 3.1)
     draper (1.4.0)
       actionpack (>= 3.0)
       activemodel (>= 3.0)
@@ -230,6 +232,7 @@ DEPENDENCIES
   bootstrap-sass
   capybara
   coffee-rails (~> 4.0.0)
+  doorkeeper
   draper
   factory_girl_rails
   font-awesome-rails
