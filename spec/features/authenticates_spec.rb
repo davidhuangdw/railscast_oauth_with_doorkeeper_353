@@ -1,20 +1,23 @@
 require 'rails_helper'
 
 feature "Authenticates", :type => :feature do
-  # let(:user) {build(:user)}
-  # it 'can signup' do
-  #   visit root_path
-  #   click_link 'Sign Up'
-  #   expect(current_path).to eq(signup_path)
-  #
-  #   fill_in 'Name', with: user.name
-  #   fill_in 'Password', match: :first, with: user.password
-  #   fill_in 'Password confirmation', with: user.password
-  #   expect{click_on 'Sign Up'}.to change{User.count}.by(1)
-  #
-  #   expect(current_path).to eq(user_path(user))
-  #   expect(page).to have_content('successfully')
-  # end
+
+  let(:new_user) {build(:user)}
+  it 'can signup' do
+    visit root_path
+    click_link 'Sign Up'
+    expect(current_path).to eq(signup_path)
+
+    fill_in 'Name', with: new_user.name
+    fill_in 'user_password', with: new_user.password
+    fill_in 'Password confirmation', with: new_user.password_confirmation
+    expect{click_button 'Create'}.to change{User.count}.by(1)
+
+    record = User.find_by_name(new_user.name)
+    expect(current_path).to eq(user_path(record))
+
+    expect(page).to have_content('successfully')
+  end
 
   let(:user) {create(:user)}
   it "can login" do
@@ -37,5 +40,4 @@ feature "Authenticates", :type => :feature do
     expect(page).not_to have_link('Log Out')
     expect(page).to have_link('Log In')
   end
-
 end
