@@ -1,28 +1,83 @@
-== README
+### oauth, doorkeeper
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+        # security: client app is better to use https to visit api, when oauth
 
-Things you may want to cover:
+        # application side: omniauth-oauth
+        gem 'omni-auth'
+        # lib/omniauth/strategies/todo.rb
+        ...
 
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+        # oauth client under console:
+        gem install oauth2
+        pry -r oauth2
+        # console:
+        app_id = '...'
+        secret='...'
+        callback= '...'
+        client = OAuth2::Client.new(app_id, secret, site:'http://localhost:3000/')
+        client.auth_code.authorize_url(redirect_uri:callback)
+        # visit page & get 'code'
+        access = client.auth_code.get_token('...<code>....',redirect_uri:callback)
+        access.token    # access_token
+        access.get('<resource_path_on_server>').parsed
+        access.get('/api/tasks').parsed
 
 
-Please feel free to use a different markup language if you do not plan to run
-<tt>rake doc:app</tt>.
+        # client side oauth process:
+        # 1. client use its 'api_key, secrete, callback_uri' to fetch 'access_token'
+        #   a. client visit authorize page to get 'code':
+        'http://<server>/oauth/authorize?client_id=...&redirect_uri=...&response_typ=code'
+        #     1. authorize page will ask user(resource owner) to authorize client app
+        #     2. server redirect 'authorize page' to client's 'callback uri' with 'code'
+        #     3. client callback controller get 'code'
+        #   b. client use 'code' to ask for 'access_token'
+        #     1. server redirect to callback_uri with 'access_token'
+        # 2. then, client use 'access_token' inside params to visit server's oauth-protected resources(url)
+        # access_token <---bind/map to---> client app callback + resource owner(uid)
+
+
+        # resource owner
+          doorkeeper_for :all
+          def index
+            # Task.all
+            respond_with current_user.tasks
+          end
+          def create
+            respond_with current_user.tasks.create(task_params)
+          end
+          private
+          def current_user
+            @current_user ||= User.find(doorkeeper_token.resource_owner_id)
+          end
+
+        # protect server resources:
+          doorkeeper_for :all                           # doorkeeper 1.4
+          before_action :doorkeeper_authorize!          # doorkeeper 2.0
+          before_action -> { doorkeeper_authorize! :public }, only: :index
+          before_action only: [:create, :update, :destroy] do
+            doorkeeper_authorize! :admin, :write
+          end
+        # example
+
+        # add applications
+        http://localhost:3000/oauth/applications
+        # add client and set callback url: http://<client_address>/auth/.../callback
+
+        # initializer/doorkeeper.rb
+          resource_owner_authenticator do
+            User.find_by_id(session[:user_id]) || redirect_to(login_url, return_to:request.full_path)
+          end
+          # restrict access of adding application
+          admin_authenticator do
+            # Put your admin authentication logic here.
+            # Example implementation:
+            Admin.find_by_id(session[:admin_id]) || redirect_to(new_admin_session_url)
+          end
+
+
+        rails g doorkeeper:install
+        rails g doorkeeper:migration
+        rails g db:migrate
+
+        gem 'doorkeeper'
+
