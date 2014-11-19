@@ -67,3 +67,4 @@ group :development, :test do
 end
 
 gem 'doorkeeper'
+gem 'omniauth-oauth2'
